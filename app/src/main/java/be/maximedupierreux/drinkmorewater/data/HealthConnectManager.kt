@@ -70,32 +70,23 @@ class HealthConnectManager(private val context: Context) {
     /**
      * TODO: Writes [WeightRecord] to Health Connect.
      */
-    suspend fun writeWeightInput(weightInput: Double) {
+
+    suspend fun writeWaterInput(waterInput: Double) {
         val time = ZonedDateTime.now().withNano(0)
-        val weightRecord = WeightRecord(
-            weight = Mass.kilograms(weightInput),
-            time = time.toInstant(),
-            zoneOffset = time.offset
+        val waterRecord = HydrationRecord(
+            startTime = time.toInstant(),
+            startZoneOffset = time.offset,
+            volume = Volume.milliliters(waterInput),
+            endZoneOffset = time.offset,
+            endTime = time.toInstant()
         )
-        val records = listOf(weightRecord)
+        val records = listOf(waterRecord)
         try {
             healthConnectClient.insertRecords(records)
             Toast.makeText(context, "Successfully insert records", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
             Toast.makeText(context, e.message.toString(), Toast.LENGTH_SHORT).show()
         }
-    }
-
-    /**
-     * TODO: Reads in existing [WeightRecord]s.
-     */
-    suspend fun readWeightInputs(start: Instant, end: Instant): List<WeightRecord> {
-        val request = ReadRecordsRequest(
-            recordType = WeightRecord::class,
-            timeRangeFilter = TimeRangeFilter.between(start, end)
-        )
-        val response = healthConnectClient.readRecords(request)
-        return response.records
     }
 
     suspend fun readHydrationAggregate(start: Instant, end: Instant): Volume? {
